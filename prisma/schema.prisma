@@ -19,3 +19,64 @@ model Post {
 
     @@index([name])
 }
+
+model Application {
+    id                      String            @id @default(uuid())
+    status                  ApplicationStatus @default(DRAFT)
+    
+    // Service Type Information
+    numberOfApplicants      Int?
+    visaType               String?           // "tourist", "business", "transit", "diplomatic"
+    visaDuration           String?           // "single", "multiple-1month", "multiple-3months", "multiple-6months", "multiple-1year", "multiple-2years", "multiple-3years"
+    purposeOfVisit         String?
+    entryDate              DateTime?
+    exitDate               DateTime?
+    processingTime         String?           // "normal", "urgent", "super-urgent", "express", "emergency", "weekend-holiday"
+    
+    // Personal Information
+    fullName               String?
+    dateOfBirth            DateTime?
+    nationality            String?
+    passportNumber         String?
+    passportIssueDate      DateTime?
+    passportExpiryDate     DateTime?
+    passportIssuingCountry String?
+    
+    // Contact Information
+    contactFullName        String?
+    phoneNumber            String?
+    emailAddress           String?
+    currentAddress         String?
+    vietnamAddress         String?
+    
+    // Emergency Contact
+    emergencyContactName   String?
+    emergencyContactPhone  String?
+    emergencyContactEmail  String?
+    emergencyRelationship  String?
+    
+    // File Uploads
+    passportScanUrl        String?
+    portraitPhotoUrl       String?
+    
+    // Agreements
+    informationConfirmation Boolean          @default(false)
+    termsAndConditions     Boolean          @default(false)
+    
+    // Metadata
+    createdAt              DateTime         @default(now())
+    updatedAt              DateTime         @updatedAt
+    submittedAt            DateTime?
+
+    @@index([status])
+    @@index([createdAt])
+    @@index([submittedAt])
+}
+
+enum ApplicationStatus {
+    DRAFT
+    SUBMITTED
+    UNDER_REVIEW
+    APPROVED
+    REJECTED
+}

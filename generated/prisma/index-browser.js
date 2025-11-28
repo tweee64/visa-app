@@ -128,6 +128,41 @@ exports.Prisma.PostScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ApplicationScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  numberOfApplicants: 'numberOfApplicants',
+  visaType: 'visaType',
+  visaDuration: 'visaDuration',
+  purposeOfVisit: 'purposeOfVisit',
+  entryDate: 'entryDate',
+  exitDate: 'exitDate',
+  processingTime: 'processingTime',
+  fullName: 'fullName',
+  dateOfBirth: 'dateOfBirth',
+  nationality: 'nationality',
+  passportNumber: 'passportNumber',
+  passportIssueDate: 'passportIssueDate',
+  passportExpiryDate: 'passportExpiryDate',
+  passportIssuingCountry: 'passportIssuingCountry',
+  contactFullName: 'contactFullName',
+  phoneNumber: 'phoneNumber',
+  emailAddress: 'emailAddress',
+  currentAddress: 'currentAddress',
+  vietnamAddress: 'vietnamAddress',
+  emergencyContactName: 'emergencyContactName',
+  emergencyContactPhone: 'emergencyContactPhone',
+  emergencyContactEmail: 'emergencyContactEmail',
+  emergencyRelationship: 'emergencyRelationship',
+  passportScanUrl: 'passportScanUrl',
+  portraitPhotoUrl: 'portraitPhotoUrl',
+  informationConfirmation: 'informationConfirmation',
+  termsAndConditions: 'termsAndConditions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  submittedAt: 'submittedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -138,9 +173,21 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+exports.ApplicationStatus = exports.$Enums.ApplicationStatus = {
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
 
 exports.Prisma.ModelName = {
-  Post: 'Post'
+  Post: 'Post',
+  Application: 'Application'
 };
 
 /**

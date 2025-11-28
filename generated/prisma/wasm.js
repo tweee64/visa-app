@@ -100,6 +100,41 @@ exports.Prisma.PostScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ApplicationScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  numberOfApplicants: 'numberOfApplicants',
+  visaType: 'visaType',
+  visaDuration: 'visaDuration',
+  purposeOfVisit: 'purposeOfVisit',
+  entryDate: 'entryDate',
+  exitDate: 'exitDate',
+  processingTime: 'processingTime',
+  fullName: 'fullName',
+  dateOfBirth: 'dateOfBirth',
+  nationality: 'nationality',
+  passportNumber: 'passportNumber',
+  passportIssueDate: 'passportIssueDate',
+  passportExpiryDate: 'passportExpiryDate',
+  passportIssuingCountry: 'passportIssuingCountry',
+  contactFullName: 'contactFullName',
+  phoneNumber: 'phoneNumber',
+  emailAddress: 'emailAddress',
+  currentAddress: 'currentAddress',
+  vietnamAddress: 'vietnamAddress',
+  emergencyContactName: 'emergencyContactName',
+  emergencyContactPhone: 'emergencyContactPhone',
+  emergencyContactEmail: 'emergencyContactEmail',
+  emergencyRelationship: 'emergencyRelationship',
+  passportScanUrl: 'passportScanUrl',
+  portraitPhotoUrl: 'portraitPhotoUrl',
+  informationConfirmation: 'informationConfirmation',
+  termsAndConditions: 'termsAndConditions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  submittedAt: 'submittedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -110,9 +145,21 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+exports.ApplicationStatus = exports.$Enums.ApplicationStatus = {
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
 
 exports.Prisma.ModelName = {
-  Post: 'Post'
+  Post: 'Post',
+  Application: 'Application'
 };
 /**
  * Create the Client
@@ -162,13 +209,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Post {\n  id        Int      @id @default(autoincrement())\n  name      String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([name])\n}\n",
-  "inlineSchemaHash": "4dfee2d805d63053d5ae63a6ff65a5c68e353713bdd4147909d9158ea83d8e0f",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Post {\n  id        Int      @id @default(autoincrement())\n  name      String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([name])\n}\n\nmodel Application {\n  id     String            @id @default(uuid())\n  status ApplicationStatus @default(DRAFT)\n\n  // Service Type Information\n  numberOfApplicants Int?\n  visaType           String? // \"tourist\", \"business\", \"transit\", \"diplomatic\"\n  visaDuration       String? // \"single\", \"multiple-1month\", \"multiple-3months\", \"multiple-6months\", \"multiple-1year\", \"multiple-2years\", \"multiple-3years\"\n  purposeOfVisit     String?\n  entryDate          DateTime?\n  exitDate           DateTime?\n  processingTime     String? // \"normal\", \"urgent\", \"super-urgent\", \"express\", \"emergency\", \"weekend-holiday\"\n\n  // Personal Information\n  fullName               String?\n  dateOfBirth            DateTime?\n  nationality            String?\n  passportNumber         String?\n  passportIssueDate      DateTime?\n  passportExpiryDate     DateTime?\n  passportIssuingCountry String?\n\n  // Contact Information\n  contactFullName String?\n  phoneNumber     String?\n  emailAddress    String?\n  currentAddress  String?\n  vietnamAddress  String?\n\n  // Emergency Contact\n  emergencyContactName  String?\n  emergencyContactPhone String?\n  emergencyContactEmail String?\n  emergencyRelationship String?\n\n  // File Uploads\n  passportScanUrl  String?\n  portraitPhotoUrl String?\n\n  // Agreements\n  informationConfirmation Boolean @default(false)\n  termsAndConditions      Boolean @default(false)\n\n  // Metadata\n  createdAt   DateTime  @default(now())\n  updatedAt   DateTime  @updatedAt\n  submittedAt DateTime?\n\n  @@index([status])\n  @@index([createdAt])\n  @@index([submittedAt])\n}\n\nenum ApplicationStatus {\n  DRAFT\n  SUBMITTED\n  UNDER_REVIEW\n  APPROVED\n  REJECTED\n}\n",
+  "inlineSchemaHash": "ac48e110f180b5620d6e561ac297bb400da97290a6127f9215c9e87f9dffe8a3",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Post\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Post\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Application\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"ApplicationStatus\"},{\"name\":\"numberOfApplicants\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"visaType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"visaDuration\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"purposeOfVisit\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"entryDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"exitDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"processingTime\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fullName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dateOfBirth\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"nationality\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"passportNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"passportIssueDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"passportExpiryDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"passportIssuingCountry\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"contactFullName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"emailAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"currentAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"vietnamAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"emergencyContactName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"emergencyContactPhone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"emergencyContactEmail\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"emergencyRelationship\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"passportScanUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"portraitPhotoUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"informationConfirmation\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"termsAndConditions\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"submittedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),
