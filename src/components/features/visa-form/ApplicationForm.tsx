@@ -8,7 +8,7 @@ import { FormNavigation } from './FormNavigation';
 
 interface ServiceTypeData {
   numberOfApplicants: number;
-  visaType: 'tourist' | 'business' | 'transit' | 'diplomatic';
+  visaType: '' | 'tourist' | 'business' | 'transit' | 'diplomatic';
   visaDuration: string;
   purposeOfVisit: string;
   entryDate: Date | null;
@@ -79,7 +79,7 @@ const STEP_CONFIG = [
 const getDefaultFormData = (): VisaApplicationData => ({
   serviceType: {
     numberOfApplicants: 1,
-    visaType: 'tourist',
+    visaType: '' as 'tourist' | 'business' | 'transit' | 'diplomatic',
     visaDuration: '',
     purposeOfVisit: '',
     entryDate: null,
@@ -313,7 +313,7 @@ export function ApplicationForm({
             data={formData}
             onUpdate={(data) => setFormData(prev => ({ 
               ...prev, 
-              serviceType: { ...prev.serviceType, ...data.serviceType } 
+              serviceType: data.serviceType ? { ...prev.serviceType, ...data.serviceType } : prev.serviceType
             }))}
           />
         );
@@ -323,7 +323,7 @@ export function ApplicationForm({
             data={formData}
             onUpdate={(data) => setFormData(prev => ({ 
               ...prev, 
-              personalInfo: { ...prev.personalInfo, ...data.personalInfo } 
+              personalInfo: data.personalInfo ? { ...prev.personalInfo, ...data.personalInfo } : prev.personalInfo
             }))}
           />
         );

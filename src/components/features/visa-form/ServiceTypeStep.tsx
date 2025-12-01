@@ -1,6 +1,8 @@
 'use client';
 
+import { useCallback } from 'react';
 import { DatePicker } from '~/components/ui/DatePicker';
+import { Select } from '~/components/ui/Select';
 import { 
   visaTypes, 
   processingTimes, 
@@ -13,7 +15,7 @@ import {
 
 interface ServiceTypeData {
   numberOfApplicants: number;
-  visaType: 'tourist' | 'business' | 'transit' | 'diplomatic';
+  visaType: '' | 'tourist' | 'business' | 'transit' | 'diplomatic';
   visaDuration: string;
   purposeOfVisit: string;
   entryDate: Date | null;
@@ -35,14 +37,18 @@ interface ServiceTypeStepProps {
 export function ServiceTypeStep({ data, onUpdate, errors = {} }: ServiceTypeStepProps) {
   const { serviceType } = data;
 
-  const handleFieldChange = (field: keyof ServiceTypeData, value: unknown) => {
+  const handleFieldChange = useCallback((field: keyof ServiceTypeData, value: unknown) => {
+    console.log('handleFieldChange called:', field, value);
+    console.log('Current serviceType:', serviceType);
+    const updatedServiceType = {
+      ...serviceType,
+      [field]: value,
+    };
+    console.log('Updated serviceType:', updatedServiceType);
     onUpdate({
-      serviceType: {
-        ...serviceType,
-        [field]: value,
-      },
+      serviceType: updatedServiceType,
     });
-  };
+  }, [serviceType, onUpdate]);
 
   const selectedVisa = visaTypes.find(visa => visa.type === serviceType.visaType);
   const selectedProcessingTime = processingTimes.find(pt => pt.value === serviceType.processingTime);
@@ -76,28 +82,19 @@ export function ServiceTypeStep({ data, onUpdate, errors = {} }: ServiceTypeStep
             <label htmlFor="numberOfApplicants" className="block text-sm font-medium text-gray-700">
               Number of Applicants <span className="text-red-500">*</span>
             </label>
-            <select
+            <Select
               id="numberOfApplicants"
-              value={serviceType.numberOfApplicants}
-              onChange={(e) => handleFieldChange('numberOfApplicants', parseInt(e.target.value))}
-              className={`
-                block w-full rounded-lg border px-4 py-3 text-base transition-colors
-                focus:outline-none focus:ring-2 focus:ring-offset-0
-                ${errors.numberOfApplicants
-                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
-                }
-              `}
+              value={serviceType.numberOfApplicants || ''}
+              onChange={(value) => handleFieldChange('numberOfApplicants', parseInt(value as string))}
+              options={Array.from({ length: 10 }, (_, i) => ({
+                value: i + 1,
+                label: `${i + 1} ${i === 0 ? 'Applicant' : 'Applicants'}`
+              }))}
+              placeholder="Select number of applicants"
+              error={!!errors.numberOfApplicants}
               aria-invalid={!!errors.numberOfApplicants}
               aria-describedby={errors.numberOfApplicants ? 'numberOfApplicants-error' : undefined}
-            >
-              <option value="">Select number of applicants</option>
-              {Array.from({ length: 10 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1} {i === 0 ? 'Applicant' : 'Applicants'}
-                </option>
-              ))}
-            </select>
+            />
             {errors.numberOfApplicants && (
               <p id="numberOfApplicants-error" className="text-sm text-red-600">
                 {errors.numberOfApplicants}
@@ -127,11 +124,7 @@ export function ServiceTypeStep({ data, onUpdate, errors = {} }: ServiceTypeStep
                     name="visaType"
                     value={visa.type}
                     checked={serviceType.visaType === visa.type}
-                    onChange={(e) => {
-                      handleFieldChange('visaType', e.target.value);
-                      // Reset duration when visa type changes
-                      handleFieldChange('visaDuration', '');
-                    }}
+                    onChange={(e) => handleFieldChange('visaType', e.target.value)}
                     className="sr-only"
                     aria-describedby={errors.visaType ? 'visaType-error' : undefined}
                   />

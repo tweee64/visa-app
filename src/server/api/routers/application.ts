@@ -11,6 +11,12 @@ export const applicationRouter = createTRPCRouter({
       numberOfApplicants: z.number().min(1).max(10).optional(),
       visaType: z.string().optional(),
       fullName: z.string().optional(),
+      emailAddress: z.string().optional(),
+      phoneNumber: z.string().optional(),
+      nationality: z.string().optional(),
+      passportNumber: z.string().optional(),
+      processingTime: z.string().optional(),
+      entryDate: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       try {
@@ -20,6 +26,12 @@ export const applicationRouter = createTRPCRouter({
             numberOfApplicants: input.numberOfApplicants ?? 1,
             visaType: input.visaType ?? "tourist",
             fullName: input.fullName ?? "",
+            emailAddress: input.emailAddress ?? "",
+            phoneNumber: input.phoneNumber ?? "",
+            nationality: input.nationality ?? "",
+            passportNumber: input.passportNumber ?? "",
+            processingTime: input.processingTime ?? "",
+            entryDate: input.entryDate ? new Date(input.entryDate) : null,
           },
         });
 

@@ -7,10 +7,15 @@ import { api } from '~/trpc/react';
 import { uploadFile } from '~/lib/utils/file-upload';
 import { useToast } from '~/components/ui/Toast';
 
+// Type guard for valid visa types
+const isValidVisaType = (visaType: string): visaType is 'tourist' | 'business' | 'transit' | 'diplomatic' => {
+  return ['tourist', 'business', 'transit', 'diplomatic'].includes(visaType);
+};
+
 // Define the complete data structure for the form
 interface ServiceTypeData {
   numberOfApplicants: number;
-  visaType: 'tourist' | 'business' | 'transit' | 'diplomatic';
+  visaType: '' | 'tourist' | 'business' | 'transit' | 'diplomatic';
   visaDuration: string;
   purposeOfVisit: string;
   entryDate: Date | null;
@@ -67,7 +72,6 @@ export default function ApplyPage() {
   const [currentApplicationId, setCurrentApplicationId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [errors, setErrors] = useState<string[]>([]);
-  const [isInitializing, setIsInitializing] = useState(false);
   const { showToast: toastFn, ToastContainer } = useToast();
   
   // Stable toast function using useCallback
@@ -87,31 +91,11 @@ export default function ApplyPage() {
     { enabled: !!currentApplicationId }
   );
 
-  // Create or get draft application ID on mount
+  // Load existing draft on mount if available
   useEffect(() => {
-    if (isInitializing) return; // Prevent multiple initialization attempts
-    
     const savedAppId = localStorage.getItem('current-application-id');
     if (savedAppId) {
       setCurrentApplicationId(savedAppId);
-    } else {
-      // Create new draft
-      setIsInitializing(true);
-      createDraftMutation.mutate({}, {
-        onSuccess: (data) => {
-          setCurrentApplicationId(data.id);
-          localStorage.setItem('current-application-id', data.id);
-          showToast('Application draft created successfully', 'success');
-          setIsInitializing(false);
-        },
-        onError: (error) => {
-          console.error('Failed to create draft:', error);
-          const errorMessage = 'Failed to initialize application. Please refresh the page.';
-          setErrors([errorMessage]);
-          showToast(errorMessage, 'error');
-          setIsInitializing(false);
-        },
-      });
     }
   }, []); // Empty dependency array for one-time initialization
 
@@ -133,12 +117,34 @@ export default function ApplyPage() {
   };
 
   const handleSubmit = async (data: VisaApplicationData) => {
-    if (!currentApplicationId) {
-      setErrors(['No application ID available. Please refresh the page.']);
-      return;
-    }
-
     setErrors([]);
+    
+    let applicationId = currentApplicationId;
+    
+    // Create draft if no application exists yet
+    if (!applicationId) {
+      try {
+        const newDraft = await createDraftMutation.mutateAsync({
+          fullName: data.personalInfo.fullName,
+          emailAddress: data.personalInfo.contactInfo.emailAddress,
+          phoneNumber: data.personalInfo.contactInfo.phoneNumber,
+          nationality: data.personalInfo.nationality,
+          passportNumber: data.personalInfo.passportNumber,
+          visaType: data.serviceType.visaType,
+          processingTime: data.serviceType.processingTime,
+          entryDate: data.serviceType.entryDate?.toISOString() ?? '',
+        });
+        
+        applicationId = newDraft.id;
+        setCurrentApplicationId(applicationId);
+        localStorage.setItem('current-application-id', applicationId);
+      } catch (error) {
+        console.error('Failed to create application:', error);
+        setErrors(['Failed to create application. Please try again.']);
+        showToast('Failed to create application', 'error');
+        return;
+      }
+    }
 
     try {
       // Upload files first if they exist
@@ -148,14 +154,14 @@ export default function ApplyPage() {
       if (data.personalInfo.fileUploads.passportScan) {
         passportScanUrl = await handleFileUpload(
           data.personalInfo.fileUploads.passportScan,
-          currentApplicationId
+          applicationId
         ) ?? '';
       }
 
       if (data.personalInfo.fileUploads.portraitPhoto) {
         portraitPhotoUrl = await handleFileUpload(
           data.personalInfo.fileUploads.portraitPhoto,
-          currentApplicationId
+          applicationId
         ) ?? '';
       }
 
@@ -167,9 +173,14 @@ export default function ApplyPage() {
         return '';
       };
 
-      // Submit application with file URLs
+      // Validate that visaType is selected
+      if (!data.serviceType.visaType) {
+        throw new Error('Please select a visa type');
+      }
+
+      // Submit the application with file URLs
       await submitApplicationMutation.mutateAsync({
-        id: currentApplicationId,
+        id: applicationId,
         fullName: data.personalInfo.fullName,
         emailAddress: data.personalInfo.contactInfo.emailAddress,
         phoneNumber: data.personalInfo.contactInfo.phoneNumber,
@@ -201,26 +212,42 @@ export default function ApplyPage() {
   };
 
   const handleSaveAsDraft = async (data: Partial<VisaApplicationData>) => {
-    if (!currentApplicationId) return;
-
     setErrors([]);
 
     try {
-      // Save current form data to database
-      await updateApplicationMutation.mutateAsync({
-        id: currentApplicationId,
-        fullName: data.personalInfo?.fullName ?? '',
-        emailAddress: data.personalInfo?.contactInfo?.emailAddress ?? '',
-        phoneNumber: data.personalInfo?.contactInfo?.phoneNumber ?? '',
-        nationality: data.personalInfo?.nationality ?? '',
-        passportNumber: data.personalInfo?.passportNumber ?? '',
-        visaType: data.serviceType?.visaType ?? 'tourist',
-        processingTime: data.serviceType?.processingTime ?? '',
-        entryDate: data.serviceType?.entryDate?.toISOString() ?? '',
-      });
+      if (!currentApplicationId) {
+        // Create new draft for the first time
+        const newDraft = await createDraftMutation.mutateAsync({
+          fullName: data.personalInfo?.fullName ?? '',
+          emailAddress: data.personalInfo?.contactInfo?.emailAddress ?? '',
+          phoneNumber: data.personalInfo?.contactInfo?.phoneNumber ?? '',
+          nationality: data.personalInfo?.nationality ?? '',
+          passportNumber: data.personalInfo?.passportNumber ?? '',
+          visaType: (data.serviceType?.visaType && isValidVisaType(data.serviceType.visaType)) ? data.serviceType.visaType : 'tourist',
+          processingTime: data.serviceType?.processingTime ?? '',
+          entryDate: data.serviceType?.entryDate?.toISOString() ?? '',
+        });
+        
+        setCurrentApplicationId(newDraft.id);
+        localStorage.setItem('current-application-id', newDraft.id);
+      } else {
+        // Update existing draft
+        await updateApplicationMutation.mutateAsync({
+          id: currentApplicationId,
+          fullName: data.personalInfo?.fullName ?? '',
+          emailAddress: data.personalInfo?.contactInfo?.emailAddress ?? '',
+          phoneNumber: data.personalInfo?.contactInfo?.phoneNumber ?? '',
+          nationality: data.personalInfo?.nationality ?? '',
+          passportNumber: data.personalInfo?.passportNumber ?? '',
+          visaType: (data.serviceType?.visaType && isValidVisaType(data.serviceType.visaType)) ? data.serviceType.visaType : 'tourist',
+          processingTime: data.serviceType?.processingTime ?? '',
+          entryDate: data.serviceType?.entryDate?.toISOString() ?? '',
+        });
 
-      // Invalidate queries to refresh data
-      await utils.application.getById.invalidate({ id: currentApplicationId });
+        // Invalidate queries to refresh data
+        await utils.application.getById.invalidate({ id: currentApplicationId });
+      }
+      
       showToast('Draft saved successfully', 'success');
     } catch (error) {
       console.error('Draft save error:', error);
@@ -236,7 +263,7 @@ export default function ApplyPage() {
 
     return {
       serviceType: {
-        visaType: (existingApplication.visaType as 'tourist' | 'business' | 'transit' | 'diplomatic') || 'tourist',
+        visaType: (existingApplication.visaType as '' | 'tourist' | 'business' | 'transit' | 'diplomatic') || '',
         processingTime: existingApplication.processingTime ?? '',
         entryDate: existingApplication.entryDate ? new Date(existingApplication.entryDate) : null,
         numberOfApplicants: 1,
@@ -277,16 +304,7 @@ export default function ApplyPage() {
     };
   };
 
-  if (createDraftMutation.isPending || isInitializing) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Initializing application...</p>
-        </div>
-      </div>
-    );
-  }
+  // No loading state needed since we don't create drafts on page load
 
   return (
     <div>
